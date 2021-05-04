@@ -1,21 +1,48 @@
 import React, { useState } from "react";
 import Button from "../../component/atom/Button";
 import Input from "../../component/atom/Input";
+import firebase from "../../config/Firebase";
+import { useHistory } from "react-router-dom";
 
 const Register = () => {
   const [nama, setNama] = useState("");
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [notelepon, setNotelepon] = useState("");
-  const [address, setAddress] = useState("");
+  const [password, setPassword] = useState("");
+
+  let history = useHistory();
+
+  const onSubmit = () => {
+    const data = {
+      email: email,
+      nama: nama,
+    };
+
+    firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then((userCredential) => {
+        const userId = userCredential.user.uid;
+        firebase
+          .database()
+          .ref("users/" + userId)
+          .set(data);
+
+        setNama("");
+        setEmail("");
+        setPassword("");
+
+        history.push("/Login");
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   const handleSubmit = () => {
     const dataRegis = {
       nama: nama,
-      username: username,
       email: email,
-      notelepon: notelepon,
-      address: address,
+      password: password,
     };
     console.log(dataRegis);
   };
@@ -31,13 +58,7 @@ const Register = () => {
         value={nama}
         onChange={(event) => setNama(event.target.value)}
       />
-      <Input
-        className="form-control"
-        placeholder="Masukan Username"
-        label="Username"
-        value={username}
-        onChange={(event) => setUsername(event.target.value)}
-      />
+
       <Input
         className="form-control"
         placeholder="Masukan Email"
@@ -45,22 +66,16 @@ const Register = () => {
         value={email}
         onChange={(event) => setEmail(event.target.value)}
       />
+
       <Input
         className="form-control"
-        placeholder="Masukan No Telepon"
-        label="Phone Number"
-        value={notelepon}
-        onChange={(event) => setNotelepon(event.target.value)}
-      />
-      <Input
-        className="form-control"
-        placeholder="Masukan Alamat"
-        label="Address"
-        value={address}
-        onChange={(event) => setAddress(event.target.value)}
+        placeholder="Masukan Password"
+        label="Password"
+        value={password}
+        onChange={(event) => setPassword(event.target.value)}
       />
       <br />
-      <Button onSubmit={handleSubmit} text="Register" />
+      <Button onSubmit={onSubmit} text="Register" />
     </div>
   );
 };
